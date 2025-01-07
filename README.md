@@ -1,8 +1,8 @@
 # meminfo-rs
 
-A utility to show the `Dirty` and `Writeback` values from `/proc/meminfo` in simple window.
-
-I wanted this so I could easily see the progress of syncing multi-gigabyte files onto a rather slow USB stick.
+A utility to show the `Dirty` and `Writeback` values from `/proc/meminfo` in a simple window. I 
+wanted this so I could easily see the progress of syncing multi-gigabyte files onto a rather slow 
+USB stick.
 
 ![Screenshot of meminfo-rs in action](docs/screenshot.png)
 
