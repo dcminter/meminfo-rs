@@ -24,8 +24,15 @@ watch grep -e Dirty: -e Writeback: /proc/meminfo
 
 ## Build and install
 
-This is all built with cargo. Your best bet is to just build and install it yourself; clone 
-the repo and then in the project directory:
+![Build Status](https://github.com/dcminter/meminfo-rs/actions/workflows/rust.yml/badge.svg)
+
+This is all built with cargo. Your best bet is to just build and install it yourself. You need
+to have the GTK dev library installed first:
+
+```text
+sudo apt install libgtk-4-dev
+```
+Then clone the repo and run the cargo command from the project directory:
 
 ```bash
 cargo install --path .
