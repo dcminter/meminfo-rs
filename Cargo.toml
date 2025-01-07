@@ -1,0 +1,8 @@
+[package]
+name = "meminfo"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+gtk = {version = "0.9.5", package = "gtk4"}
+regex = "1.11.1"
