@@ -17,13 +17,16 @@ const MEMINFO_KEY_DIRTY: &str = "Dirty";
 const MEMINFO_KEY_WRITEBACK: &str = "Writeback";
 
 #[derive(Debug)]
+struct MemRange {
+    current: f64,
+    highest: f64,
+    units: String,
+}
+
+#[derive(Debug)]
 struct MemCounts {
-    highest_dirty: f64,
-    current_dirty: f64,
-    dirty_units: String,
-    highest_writeback: f64,
-    current_writeback: f64,
-    writeback_units: String,
+    dirty: MemRange,
+    writeback: MemRange,
 }
 
 fn main() -> glib::ExitCode {
@@ -32,6 +35,23 @@ fn main() -> glib::ExitCode {
         .build();
     app.connect_activate(on_activate);
     app.run()
+}
+
+fn memory_count_update(entry: Option<&(&str, &str)>, range: &mut MemRange) {
+    match process_parsed_meminfo_entry(entry) {
+        Some((numeric, unit)) => {
+            range.units = unit;
+            if numeric > range.highest {
+                range.current = numeric;
+                range.highest = numeric;
+            } else {
+                range.current = numeric;
+            };
+        }
+        None => {
+            eprintln!("Memory count not found in {}", PROC_MEMINFO_PATH)
+        }
+    }
 }
 
 fn meminfo_reader(line_regex: &Regex, mc: &mut MemCounts) {
@@ -43,31 +63,8 @@ fn meminfo_reader(line_regex: &Regex, mc: &mut MemCounts) {
                 .map(|(_, [key, value, unit])| (key, (value, unit)))
                 .collect();
 
-            match process_parsed_meminfo_entry(mapped_meminfo.get(MEMINFO_KEY_DIRTY)) {
-                Some((dirty, unit)) => {
-                    mc.current_dirty = dirty;
-                    if mc.current_dirty > mc.highest_dirty {
-                        mc.highest_dirty = mc.current_dirty;
-                    }
-                    mc.dirty_units = unit;
-                }
-                None => {
-                    eprintln!("Dirty memory count not found in {}", PROC_MEMINFO_PATH)
-                }
-            }
-
-            match process_parsed_meminfo_entry(mapped_meminfo.get(MEMINFO_KEY_WRITEBACK)) {
-                Some((writeback, unit)) => {
-                    mc.current_writeback = writeback;
-                    if mc.current_writeback > mc.highest_writeback {
-                        mc.highest_writeback = mc.current_writeback;
-                    }
-                    mc.writeback_units = unit;
-                }
-                None => {
-                    eprintln!("Dirty memory count not found in {}", PROC_MEMINFO_PATH)
-                }
-            }
+            memory_count_update(mapped_meminfo.get(MEMINFO_KEY_DIRTY), &mut mc.dirty);
+            memory_count_update(mapped_meminfo.get(MEMINFO_KEY_WRITEBACK), &mut mc.writeback);
         }
         Err(error) => {
             eprintln!("Error reading {}: {}", PROC_MEMINFO_PATH, error);
@@ -163,12 +160,16 @@ fn on_activate(app: &Application) {
     let line_regex = Regex::new(MEMINFO_LINE_PATTERN).unwrap(); // TODO ... handle error better
 
     let mut mem_counts = MemCounts {
-        highest_dirty: 0.0,
-        current_dirty: 0.0,
-        dirty_units: "Unknown".to_string(),
-        highest_writeback: 0.0,
-        current_writeback: 0.0,
-        writeback_units: "Unknown".to_string(),
+        dirty: MemRange {
+            current: 0.0,
+            highest: 0.0,
+            units: "Unknown".to_string(),
+        },
+        writeback: MemRange {
+            current: 0.0,
+            highest: 0.0,
+            units: "Unknown".to_string(),
+        },
     };
 
     // Run before attempting to render anything to ensure we have initial values set nicely
@@ -198,6 +199,12 @@ fn on_activate(app: &Application) {
     window.present();
 }
 
+fn update_level(range: &MemRange, level_bar: &LevelBar, label: &Label) {
+    level_bar.set_value(range.current);
+    level_bar.set_max_value(range.highest);
+    label.set_label(format!("{} {}", range.current, range.units).as_str());
+}
+
 fn update_level_bars(
     line_regex: &Regex,
     mc: &mut MemCounts,
@@ -207,13 +214,6 @@ fn update_level_bars(
     writeback_numeric_label: &Label,
 ) {
     meminfo_reader(&line_regex, mc);
-    {
-        dirty_level_bar.set_value(mc.current_dirty);
-        dirty_level_bar.set_max_value(mc.highest_dirty);
-        dirty_numeric_label.set_label(format!("{} {}", mc.current_dirty, mc.dirty_units).as_str());
-        writeback_level_bar.set_value(mc.current_writeback);
-        writeback_level_bar.set_max_value(mc.highest_writeback);
-        writeback_numeric_label
-            .set_label(format!("{} {}", mc.current_writeback, mc.writeback_units).as_str());
-    }
+    update_level(&mc.dirty, dirty_level_bar, dirty_numeric_label);
+    update_level(&mc.writeback, writeback_level_bar, writeback_numeric_label);
 }
