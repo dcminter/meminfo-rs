@@ -53,7 +53,6 @@ To Do
   * Supply a .desktop file for Gnome
   * Improve the layout more (I may have to figure out custom layouts?)
   * Add reset of highest values feature (so you can narrow the scale if it's showing a stale large maximum value)
-  * Fix error handling (see TODO comments in code)
   * Maybe allow to drive from list of meminfo field keys?
     * In case someone has a use beyond watching USB drives sync!
     * Maybe make the list configurable?
@@ -67,3 +66,4 @@ Done
   * Removed some unnecessary Arc/Mutex stuff; the ownership can be moved to the receiving thread
   * Made the window resizing less bad (it's still poor though)
   * Make less redundant (the code's pretty primitive)
+  * Fix error handling (avoid one unwrap, make another unrecoverable one an expect instead)

@@ -74,11 +74,16 @@ fn meminfo_reader(line_regex: &Regex, mc: &mut MemCounts) {
 
 fn process_parsed_meminfo_entry(entry: Option<&(&str, &str)>) -> Option<(f64, String)> {
     match entry {
-        Some((value, unit)) => {
-            let latest_value = (*value).parse::<i64>().unwrap() as f64; // TODO: Handle error better
-            let units = (*unit).to_string();
-            Some((latest_value, units))
-        }
+        Some((value, unit)) => match (*value).parse::<i64>() {
+            Ok(value) => {
+                let units = (*unit).to_string();
+                Some((value as f64, units))
+            }
+            Err(error) => {
+                eprintln!("The numeric part ('{}') of a meminfo line could not be parsed as a numeric value: {}", value, error);
+                None
+            }
+        },
         None => {
             eprintln!("Dirty memory count not found in {}", PROC_MEMINFO_PATH);
             None
@@ -157,7 +162,9 @@ fn on_activate(app: &Application) {
 
     window.set_child(Some(&flow_box));
 
-    let line_regex = Regex::new(MEMINFO_LINE_PATTERN).unwrap(); // TODO ... handle error better
+    // There's no recovering from an error here...
+    let line_regex = Regex::new(MEMINFO_LINE_PATTERN)
+        .expect("Failed to parse the compiled-in regular expression! Heavens above! :)");
 
     let mut mem_counts = MemCounts {
         dirty: MemRange {
