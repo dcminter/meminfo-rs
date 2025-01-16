@@ -1,3 +1,4 @@
+mod meminfo_layout_manager;
 use gtk::glib::ControlFlow;
 use gtk::prelude::*;
 use gtk::{
