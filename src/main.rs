@@ -37,6 +37,52 @@ fn main() -> glib::ExitCode {
     app.run()
 }
 
+#[test]
+fn test_memory_count_update_bump_highest_same_units() {
+    let mut range = MemRange {
+        current: 5.0,
+        highest: 6.0,
+        units: "kB".to_string(),
+    };
+
+    let entry = Some(&("12", "kB"));
+
+    memory_count_update(entry, &mut range);
+
+    assert_eq!(range.current, 12.0, "Current value was not set");
+    assert_eq!(range.highest, 12.0, "Highest value was not bumped up");
+}
+
+#[test]
+fn test_memory_count_update_no_bump_to_highest_same_units() {
+    let mut range = MemRange {
+        current: 5.0,
+        highest: 6.0,
+        units: "kB".to_string(),
+    };
+
+    let entry = Some(&("4", "kB"));
+
+    memory_count_update(entry, &mut range);
+
+    assert_eq!(range.current, 4.0, "Current value was not set");
+    assert_eq!(range.highest, 6.0, "Highest value was incorrectly changed");
+}
+
+/*
+   Note - this assumes that the units don't change - in practice the kernel source currently
+   has the following form with formatted print lines:
+
+   ...
+       "Dirty:      %8lu kB\n"
+   "Writeback:      %8lu kB\n"
+   ...
+
+   So the units cannot *currently* change; however I don't think it would be considered a
+   breaking change to the userspace APIs for the units reported to change dynamically in some
+   future version. I'll keep an eye on it and might re-work this to allow for it if I'm feeling
+   very keen in the future!
+*/
 fn memory_count_update(entry: Option<&(&str, &str)>, range: &mut MemRange) {
     match process_parsed_meminfo_entry(entry) {
         Some((numeric, unit)) => {
