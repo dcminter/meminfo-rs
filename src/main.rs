@@ -16,16 +16,26 @@ const MEMINFO_LINE_PATTERN: &str =
 const MEMINFO_KEY_DIRTY: &str = "Dirty";
 const MEMINFO_KEY_WRITEBACK: &str = "Writeback";
 
+/// The latest progress of a cache entry
 #[derive(Debug)]
 struct MemRange {
+    /// The current value of the cache entry
     current: f64,
+
+    /// The highest value seen for the cache entry so far
     highest: f64,
+
+    /// The units in which the values are expressed, expected to be 'kB'
     units: String,
 }
 
+/// The cache entries that this utility is tracking
 #[derive(Debug)]
 struct MemCounts {
+    /// Memory which is waiting to get written back to the disk
     dirty: MemRange,
+
+    /// Memory which is actively being written back to the disk
     writeback: MemRange,
 }
 
@@ -69,20 +79,18 @@ fn test_memory_count_update_no_bump_to_highest_same_units() {
     assert_eq!(range.highest, 6.0, "Highest value was incorrectly changed");
 }
 
-/*
-   Note - this assumes that the units don't change - in practice the kernel source currently
-   has the following form with formatted print lines:
-
-   ...
-       "Dirty:      %8lu kB\n"
-   "Writeback:      %8lu kB\n"
-   ...
-
-   So the units cannot *currently* change; however I don't think it would be considered a
-   breaking change to the userspace APIs for the units reported to change dynamically in some
-   future version. I'll keep an eye on it and might re-work this to allow for it if I'm feeling
-   very keen in the future!
-*/
+///   Note - this assumes that the units don't change - in practice the kernel source currently
+///   has the following form with formatted print lines:
+///
+///   ...
+///       "Dirty:      %8lu kB\n"
+///   "Writeback:      %8lu kB\n"
+///   ...
+///
+///   So the units cannot *currently* change; however I don't think it would be considered a
+///   breaking change to the userspace APIs for the units reported to change dynamically in some
+///   future version. I'll keep an eye on it and might re-work this to allow for it if I'm feeling
+///   very keen in the future!
 fn memory_count_update(entry: Option<&(&str, &str)>, range: &mut MemRange) {
     match process_parsed_meminfo_entry(entry) {
         Some((numeric, unit)) => {
@@ -100,8 +108,11 @@ fn memory_count_update(entry: Option<&(&str, &str)>, range: &mut MemRange) {
     }
 }
 
-fn meminfo_reader(line_regex: &Regex, mc: &mut MemCounts) {
-    match fs::read_to_string(PROC_MEMINFO_PATH) {
+/// For a provided path (expected to be `/proc/meminfo`) this open it as a file and then use the
+/// provided regular expression to scan for the `Dirty` and `Writeback` lines, and populate the
+/// provided `MemCounts` structure accordingly.
+fn meminfo_reader(path: &str, line_regex: &Regex, mc: &mut MemCounts) {
+    match fs::read_to_string(path) {
         Ok(text) => {
             let mapped_meminfo: HashMap<&str, (&str, &str)> = line_regex
                 .captures_iter(text.as_str())
@@ -266,7 +277,7 @@ fn update_level_bars(
     writeback_level_bar: &LevelBar,
     writeback_numeric_label: &Label,
 ) {
-    meminfo_reader(&line_regex, mc);
+    meminfo_reader(PROC_MEMINFO_PATH, &line_regex, mc);
     update_level(&mc.dirty, dirty_level_bar, dirty_numeric_label);
     update_level(&mc.writeback, writeback_level_bar, writeback_numeric_label);
 }
