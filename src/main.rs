@@ -155,68 +155,28 @@ fn on_activate(app: &Application) {
         .show_menubar(true)
         .build();
 
-    let dirty_level_bar = LevelBar::new();
-    //dirty_level_bar.set_width_request(DEFAULT_LEVEL_BAR_PIXEL_WIDTH);
-
-    let dirty_level_bar_click = GestureClick::new();
-    dirty_level_bar_click.connect_pressed(|_, _, _, _| {
-        println!("CLICKED DIRTY");
-    });
-    dirty_level_bar.add_controller(dirty_level_bar_click);
-
-    let writeback_level_bar = LevelBar::new();
-    //writeback_level_bar.set_width_request(DEFAULT_LEVEL_BAR_PIXEL_WIDTH);
-
-    let writeback_level_bar_click = GestureClick::new();
-    writeback_level_bar_click.connect_pressed(|_, _, _, _| {
-        println!("CLICKED WRITEBACK");
-    });
-    writeback_level_bar.add_controller(writeback_level_bar_click);
-
-    let flow_box = FlowBox::new();
-    flow_box.set_column_spacing(5);
-    flow_box.set_row_spacing(5);
-
-    // grid.set_column_homogeneous(false); // ?
-    flow_box.set_margin_start(5);
-    flow_box.set_margin_end(5);
-    flow_box.set_margin_top(5);
-    flow_box.set_margin_bottom(5);
-    flow_box.set_vexpand(false);
-    flow_box.set_selection_mode(SelectionMode::None);
-    flow_box.set_min_children_per_line(3);
-    flow_box.set_max_children_per_line(3);
-
+    // UI elements for the "Dirty" value
     let dirty_label = Label::new(Some("Dirty"));
-    dirty_label.set_halign(Align::Start);
-    dirty_label.set_hexpand(false);
-    flow_box.insert(&dirty_label, -1);
-
-    let dirty_level_bar_list = ListBox::new();
-    dirty_level_bar_list.set_valign(Align::Center);
-    dirty_level_bar_list.insert(&dirty_level_bar, -1);
-    flow_box.insert(&dirty_level_bar_list, -1);
-
+    let dirty_level_bar = LevelBar::new();
     let dirty_numeric_label = Label::new(None);
-    dirty_numeric_label.set_halign(Align::End);
-    dirty_numeric_label.set_width_request(150);
-    flow_box.insert(&dirty_numeric_label, -1);
 
+    // UI elements for the "Writeback" value
     let writeback_label = Label::new(Some("Writeback"));
-    writeback_label.set_halign(Align::Start);
-    writeback_label.set_hexpand(false);
-    flow_box.insert(&writeback_label, -1);
-
-    let writeback_level_bar_list = ListBox::new();
-    writeback_level_bar_list.set_valign(Align::Center);
-    writeback_level_bar_list.insert(&writeback_level_bar, -1);
-    flow_box.insert(&writeback_level_bar_list, -1);
-
+    let writeback_level_bar = LevelBar::new();
     let writeback_numeric_label = Label::new(None);
-    writeback_numeric_label.set_halign(Align::End);
-    writeback_numeric_label.set_width_request(150);
-    flow_box.insert(&writeback_numeric_label, -1);
 
+    // Attach controllers to the level bars (not being used though currently)
+    attach_controllers(&dirty_level_bar, &writeback_level_bar);
+
+    // Build the UI layout
+    let flow_box = build_flow_box_layout(
+        &dirty_label,
+        &dirty_level_bar,
+        &dirty_numeric_label,
+        &writeback_label,
+        &writeback_level_bar,
+        &writeback_numeric_label,
+    );
     window.set_child(Some(&flow_box));
 
     // There's no recovering from an error here...
@@ -261,6 +221,70 @@ fn on_activate(app: &Application) {
 
     // Off to the races...
     window.present();
+}
+
+fn attach_controllers(dirty_level_bar: &LevelBar, writeback_level_bar: &LevelBar) {
+    let dirty_level_bar_click = GestureClick::new();
+    dirty_level_bar_click.connect_pressed(|_, _, _, _| {
+        println!("CLICKED DIRTY");
+    });
+    dirty_level_bar.add_controller(dirty_level_bar_click);
+
+    let writeback_level_bar_click = GestureClick::new();
+    writeback_level_bar_click.connect_pressed(|_, _, _, _| {
+        println!("CLICKED WRITEBACK");
+    });
+    writeback_level_bar.add_controller(writeback_level_bar_click);
+}
+
+fn build_flow_box_layout(
+    dirty_label: &Label,
+    dirty_level_bar: &LevelBar,
+    dirty_numeric_label: &Label,
+    writeback_label: &Label,
+    writeback_level_bar: &LevelBar,
+    writeback_numeric_label: &Label,
+) -> FlowBox {
+    // Build the layout
+    let flow_box = FlowBox::new();
+    flow_box.set_column_spacing(5);
+    flow_box.set_row_spacing(5);
+
+    flow_box.set_margin_start(5);
+    flow_box.set_margin_end(5);
+    flow_box.set_margin_top(5);
+    flow_box.set_margin_bottom(5);
+    flow_box.set_vexpand(false);
+    flow_box.set_selection_mode(SelectionMode::None);
+    flow_box.set_min_children_per_line(3);
+    flow_box.set_max_children_per_line(3);
+
+    dirty_label.set_halign(Align::Start);
+    dirty_label.set_hexpand(false);
+    flow_box.insert(dirty_label, -1);
+
+    let dirty_level_bar_list = ListBox::new();
+    dirty_level_bar_list.set_valign(Align::Center);
+    dirty_level_bar_list.insert(dirty_level_bar, -1);
+    flow_box.insert(&dirty_level_bar_list, -1);
+
+    dirty_numeric_label.set_halign(Align::End);
+    dirty_numeric_label.set_width_request(150);
+    flow_box.insert(dirty_numeric_label, -1);
+
+    writeback_label.set_halign(Align::Start);
+    writeback_label.set_hexpand(false);
+    flow_box.insert(writeback_label, -1);
+
+    let writeback_level_bar_list = ListBox::new();
+    writeback_level_bar_list.set_valign(Align::Center);
+    writeback_level_bar_list.insert(writeback_level_bar, -1);
+    flow_box.insert(&writeback_level_bar_list, -1);
+
+    writeback_numeric_label.set_halign(Align::End);
+    writeback_numeric_label.set_width_request(150);
+    flow_box.insert(writeback_numeric_label, -1);
+    flow_box
 }
 
 fn update_level(range: &MemRange, level_bar: &LevelBar, label: &Label) {
