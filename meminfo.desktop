@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Meminfo
+GenericName=Memory Utility
+Comment=UI to display the dirty and writeahead buffers
+Exec=sh -c "$HOME/.cargo/bin/meminfo"
+Terminal=false
+Type=Application
+StartupNotify=false
+# Icon=???/meminfo.svg
+Categories=Utilities;Memory;

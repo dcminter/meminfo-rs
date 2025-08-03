@@ -39,7 +39,13 @@ cargo install --path .
 ```
 If anyone's having particular trouble with that I can publish a release x64 version from time to time.
 
-Once installed you can run the tool as `meminfo`
+Once installed you can run the tool as `meminfo` - alternatively under Gnome you can set up the desktop file; 
+copy the `meminfo.desktop` to `$HOME/.local/share/application` optionally editing it to uncomment the
+Icon entry and point it at the `meminfo.svg` file, and then issue the `update-desktop-database` command
+to load the desktop file. You should then be able to run the meminfo command via the search menu (Windows key),
+view and invoke it via the Show Apps button, and pin it to the dash (toolbar). 
+
+The current SVG file is pretty ugly, I'll try to make a prettier one some time this summer.
 
 ## Observations
 
@@ -50,7 +56,6 @@ include all files not just whatever subset you're interested in.
 ## To-do (and done) list...
 
 To Do
-  * Supply a .desktop file for Gnome
   * Add reset of highest values feature (so you can narrow the scale if it's showing a stale large maximum value)
   * Maybe allow to drive from list of meminfo field keys?
     * In case someone has a use beyond watching USB drives sync!
@@ -59,8 +64,8 @@ To Do
   * Better unit handling/rescaling - it's a bit confusing if both level meters say 240MiB but the dirty meter is a fraction of the size because it started at multiple Gib. 
 
 Done
-  * Init from /proc/meminfo
-  * Update from /proc/meminfo
+  * Init from `/proc/meminfo`
+  * Update from `/proc/meminfo`
   * Add third column with textual representation
   * Removed some unnecessary Arc/Mutex stuff; the ownership can be moved to the receiving thread
   * Made the window resizing less bad (it's still poor though)
@@ -68,3 +73,4 @@ Done
   * Fix error handling (avoid one unwrap, make another unrecoverable one an expect instead)
   * Improved unit handling (adjusts on the fly to show Gb etc.)
   * Improved the layout more - I'm fairly happy with it now
+  * Supply a `.desktop` & icon file for Gnome
