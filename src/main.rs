@@ -4,6 +4,7 @@ use gtk::{
     glib, Align, Application, ApplicationWindow, FlowBox, GestureClick, Label, LevelBar, ListBox,
     SelectionMode,
 };
+use human_bytes::human_bytes;
 use regex::Regex;
 use std::collections::HashMap;
 use std::fs;
@@ -290,7 +291,14 @@ fn build_flow_box_layout(
 fn update_level(range: &MemRange, level_bar: &LevelBar, label: &Label) {
     level_bar.set_value(range.current);
     level_bar.set_max_value(range.highest);
-    label.set_label(format!("{} {}", range.current, range.units).as_str());
+
+    // This is potentially sketchy; I'm assuming the units are always kib because the actual kernel
+    // code as it currently stands never returns anything other than kib (kb)
+
+    // kib to bytes (assuming kib units)
+    let converted = human_bytes(range.current * 1024.0);
+
+    label.set_label(format!("{}", converted).as_str());
 }
 
 fn update_level_bars(

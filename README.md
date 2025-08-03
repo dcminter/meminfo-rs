@@ -57,7 +57,8 @@ To Do
     * In case someone has a use beyond watching USB drives sync!
     * Maybe make the list configurable?
   * See if there's a way to do something more filesystem or even file specific...? See "Observations" above.
-  * improve the layout handling when resizing the window (seems annoyingly difficult)
+  * Improve the layout handling when resizing the window (seems annoyingly difficult)
+  * Better unit handling/rescaling - it's a bit confusing if both level meters say 240MiB but the dirty meter is a fraction of the size because it started at multiple Gib. 
 
 Done
   * Init from /proc/meminfo
@@ -67,3 +68,4 @@ Done
   * Made the window resizing less bad (it's still poor though)
   * Make less redundant (the code's pretty primitive)
   * Fix error handling (avoid one unwrap, make another unrecoverable one an expect instead)
+  * Improved unit handling (adjusts on the fly to show Gb etc.)
