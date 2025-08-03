@@ -1,8 +1,7 @@
 use gtk::glib::ControlFlow;
 use gtk::prelude::*;
 use gtk::{
-    glib, Align, Application, ApplicationWindow, FlowBox, GestureClick, Label, LevelBar, ListBox,
-    SelectionMode,
+    glib, Align, Application, ApplicationWindow, Box, GestureClick, Label, LevelBar, Orientation,
 };
 use human_bytes::human_bytes;
 use regex::Regex;
@@ -170,7 +169,7 @@ fn on_activate(app: &Application) {
     attach_controllers(&dirty_level_bar, &writeback_level_bar);
 
     // Build the UI layout
-    let flow_box = build_flow_box_layout(
+    let layout = build_layout(
         &dirty_label,
         &dirty_level_bar,
         &dirty_numeric_label,
@@ -178,7 +177,7 @@ fn on_activate(app: &Application) {
         &writeback_level_bar,
         &writeback_numeric_label,
     );
-    window.set_child(Some(&flow_box));
+    window.set_child(Some(&layout));
 
     // There's no recovering from an error here...
     let line_regex = Regex::new(MEMINFO_LINE_PATTERN)
@@ -238,54 +237,47 @@ fn attach_controllers(dirty_level_bar: &LevelBar, writeback_level_bar: &LevelBar
     writeback_level_bar.add_controller(writeback_level_bar_click);
 }
 
-fn build_flow_box_layout(
+fn build_layout(
     dirty_label: &Label,
     dirty_level_bar: &LevelBar,
     dirty_numeric_label: &Label,
     writeback_label: &Label,
     writeback_level_bar: &LevelBar,
     writeback_numeric_label: &Label,
-) -> FlowBox {
-    // Build the layout
-    let flow_box = FlowBox::new();
-    flow_box.set_column_spacing(5);
-    flow_box.set_row_spacing(5);
+) -> Box {
+    let outer_hbox = Box::new(Orientation::Horizontal, 5);
+    outer_hbox.set_margin_top(5);
+    outer_hbox.set_margin_bottom(5);
 
-    flow_box.set_margin_start(5);
-    flow_box.set_margin_end(5);
-    flow_box.set_margin_top(5);
-    flow_box.set_margin_bottom(5);
-    flow_box.set_vexpand(false);
-    flow_box.set_selection_mode(SelectionMode::None);
-    flow_box.set_min_children_per_line(3);
-    flow_box.set_max_children_per_line(3);
+    let left_labels = Box::new(Orientation::Vertical, 5);
+    left_labels.set_margin_start(5);
+    left_labels.set_margin_end(5);
+    left_labels.set_valign(Align::Center);
+    left_labels.set_hexpand(false);
+    left_labels.append(dirty_label);
+    left_labels.append(writeback_label);
 
-    dirty_label.set_halign(Align::Start);
-    dirty_label.set_hexpand(false);
-    flow_box.insert(dirty_label, -1);
+    let level_bars = Box::new(Orientation::Vertical, 5);
+    level_bars.set_valign(Align::Center);
+    level_bars.set_hexpand(true);
+    level_bars.append(dirty_level_bar);
+    level_bars.append(writeback_level_bar);
 
-    let dirty_level_bar_list = ListBox::new();
-    dirty_level_bar_list.set_valign(Align::Center);
-    dirty_level_bar_list.insert(dirty_level_bar, -1);
-    flow_box.insert(&dirty_level_bar_list, -1);
+    let right_labels = Box::new(Orientation::Vertical, 5);
+    right_labels.set_margin_start(5);
+    right_labels.set_margin_end(5);
+    right_labels.set_valign(Align::Center);
+    right_labels.set_hexpand(false);
+    right_labels.append(dirty_numeric_label);
+    right_labels.append(writeback_numeric_label);
 
-    dirty_numeric_label.set_halign(Align::End);
-    dirty_numeric_label.set_width_request(150);
-    flow_box.insert(dirty_numeric_label, -1);
+    outer_hbox.append(&left_labels);
+    outer_hbox.append(&level_bars);
+    outer_hbox.append(&right_labels);
 
-    writeback_label.set_halign(Align::Start);
-    writeback_label.set_hexpand(false);
-    flow_box.insert(writeback_label, -1);
+    // TODO: Add an expander row to fill up space if we max the window?
 
-    let writeback_level_bar_list = ListBox::new();
-    writeback_level_bar_list.set_valign(Align::Center);
-    writeback_level_bar_list.insert(writeback_level_bar, -1);
-    flow_box.insert(&writeback_level_bar_list, -1);
-
-    writeback_numeric_label.set_halign(Align::End);
-    writeback_numeric_label.set_width_request(150);
-    flow_box.insert(writeback_numeric_label, -1);
-    flow_box
+    outer_hbox
 }
 
 fn update_level(range: &MemRange, level_bar: &LevelBar, label: &Label) {

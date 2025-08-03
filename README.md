@@ -16,7 +16,7 @@ While the `Writeback` count is:
 
 Thus when both of these approach zero any pending `sync` operation must also be near its conclusion.
 
-Prio to this UI I used the following command that does exactly the same thing from the shell:
+Prior to this UI I used the following command that does exactly the same thing from the shell:
 
 ```bash
 watch grep -e Dirty: -e Writeback: /proc/meminfo
@@ -51,13 +51,11 @@ include all files not just whatever subset you're interested in.
 
 To Do
   * Supply a .desktop file for Gnome
-  * Improve the layout more (I may have to figure out custom layouts?)
   * Add reset of highest values feature (so you can narrow the scale if it's showing a stale large maximum value)
   * Maybe allow to drive from list of meminfo field keys?
     * In case someone has a use beyond watching USB drives sync!
     * Maybe make the list configurable?
   * See if there's a way to do something more filesystem or even file specific...? See "Observations" above.
-  * Improve the layout handling when resizing the window (seems annoyingly difficult)
   * Better unit handling/rescaling - it's a bit confusing if both level meters say 240MiB but the dirty meter is a fraction of the size because it started at multiple Gib. 
 
 Done
@@ -69,3 +67,4 @@ Done
   * Make less redundant (the code's pretty primitive)
   * Fix error handling (avoid one unwrap, make another unrecoverable one an expect instead)
   * Improved unit handling (adjusts on the fly to show Gb etc.)
+  * Improved the layout more - I'm fairly happy with it now
