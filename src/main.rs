@@ -1,13 +1,12 @@
 use gtk::glib::ControlFlow;
 use gtk::prelude::*;
-use gtk::{
-    glib, Align, Application, ApplicationWindow, Box, GestureClick, Label, LevelBar, Orientation,
-};
+use gtk::{glib, Align, Application, ApplicationWindow, Box, GestureClick, Grid, GridLayout, Label, LevelBar, Orientation};
 use human_bytes::human_bytes;
 use regex::Regex;
 use std::collections::HashMap;
 use std::fs;
 use std::string::ToString;
+use gtk::builders::GridLayoutBuilder;
 
 const PROC_MEMINFO_PATH: &str = "/proc/meminfo";
 const READER_FREQUENCY_SECONDS: u32 = 2;
@@ -244,40 +243,28 @@ fn build_layout(
     writeback_label: &Label,
     writeback_level_bar: &LevelBar,
     writeback_numeric_label: &Label,
-) -> Box {
-    let outer_hbox = Box::new(Orientation::Horizontal, 5);
-    outer_hbox.set_margin_top(5);
-    outer_hbox.set_margin_bottom(5);
+) -> Grid {
 
-    let left_labels = Box::new(Orientation::Vertical, 5);
-    left_labels.set_margin_start(5);
-    left_labels.set_margin_end(5);
-    left_labels.set_valign(Align::Center);
-    left_labels.set_hexpand(false);
-    left_labels.append(dirty_label);
-    left_labels.append(writeback_label);
+    dirty_level_bar.set_hexpand(true);
+    writeback_level_bar.set_hexpand(true);
 
-    let level_bars = Box::new(Orientation::Vertical, 5);
-    level_bars.set_valign(Align::Center);
-    level_bars.set_hexpand(true);
-    level_bars.append(dirty_level_bar);
-    level_bars.append(writeback_level_bar);
+    let grid = Grid::new();
+    grid.set_column_spacing(5);
+    grid.set_row_spacing(5);
+    grid.set_margin_top(5);
+    grid.set_margin_bottom(5);
+    grid.set_margin_start(5);
+    grid.set_margin_end(5);
 
-    let right_labels = Box::new(Orientation::Vertical, 5);
-    right_labels.set_margin_start(5);
-    right_labels.set_margin_end(5);
-    right_labels.set_valign(Align::Center);
-    right_labels.set_hexpand(false);
-    right_labels.append(dirty_numeric_label);
-    right_labels.append(writeback_numeric_label);
+    grid.attach(dirty_label, 0, 0, 1, 1);
+    grid.attach(dirty_level_bar, 1, 0, 1, 1);
+    grid.attach(dirty_numeric_label, 2, 0, 1, 1);
 
-    outer_hbox.append(&left_labels);
-    outer_hbox.append(&level_bars);
-    outer_hbox.append(&right_labels);
+    grid.attach(writeback_label, 0, 1, 1, 1);
+    grid.attach(writeback_level_bar, 1, 1, 1, 1);
+    grid.attach(writeback_numeric_label, 2, 1, 1, 1);
 
-    // TODO: Add an expander row to fill up space if we max the window?
-
-    outer_hbox
+    grid
 }
 
 fn update_level(range: &MemRange, level_bar: &LevelBar, label: &Label) {
